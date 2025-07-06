@@ -1,0 +1,121 @@
+/* Custom styles for Remote Admin Server */
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    font-weight: 500;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.btn {
+    border-radius: 0.375rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Terminal styles */
+#terminal-output {
+    border-radius: 0.375rem;
+    border: 1px solid #6c757d;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+#logs-output {
+    border-radius: 0.375rem;
+    border: 1px solid #dee2e6;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+/* File list styles */
+.list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+.list-group-item:first-child {
+    border-top: none;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+/* Statistics cards */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-info,
+.card.bg-warning {
+    border: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .modal-xl {
+        max-width: 95%;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-sm {
+        padding: 0.1875rem 0.375rem;
+        font-size: 0.8125rem;
+    }
+}
+
+/* Animation for alerts */
+.alert {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Loading spinner */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Custom scrollbar for terminal and logs */
+#terminal-output::-webkit-scrollbar,
+#logs-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+#terminal-output::-webkit-scrollbar-track,
+#logs-output::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#terminal-output::-webkit-scrollbar-thumb,
+#logs-output::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+#terminal-output::-webkit-scrollbar-thumb:hover,
+#logs-output::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
