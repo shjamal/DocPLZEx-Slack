@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Remote Admin Server{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+            <button class="btn btn-success" onclick="refreshClients()">
+                <i class="fas fa-sync-alt me-2"></i>Refresh
+            </button>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5>Connected Clients</h5>
+                                <h3 id="client-count">{{ clients|length }}</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-desktop fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5>Server Status</h5>
+                                <h6>Running</h6>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-server fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5>Server Port</h5>
+                                <h6>9999</h6>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-network-wired fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5>Web Port</h5>
+                                <h6>5000</h6>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-globe fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Connected Clients Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-desktop me-2"></i>Connected Clients</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="clients-table">
+                        <thead>
+                            <tr>
+                                <th>Computer Name</th>
+                                <th>Username</th>
+                                <th>OS</th>
+                                <th>IP Address</th>
+                                <th>Connected At</th>
+                                <th>Last Seen</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clients-tbody">
+                            <!-- Client rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Client Management Modal -->
+<div class="modal fade" id="clientModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-desktop me-2"></i>Client Management - <span id="modal-client-name"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" id="clientTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#terminal-tab">
+                            <i class="fas fa-terminal me-1"></i>Terminal
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#files-tab">
+                            <i class="fas fa-folder me-1"></i>Files
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#logs-tab">
+                            <i class="fas fa-list me-1"></i>Logs
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3">
+                    <!-- Terminal Tab -->
+                    <div class="tab-pane fade show active" id="terminal-tab">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="command-input" placeholder="Enter command...">
+                                    <button class="btn btn-primary" onclick="sendCommand()">
+                                        <i class="fas fa-paper-plane me-1"></i>Execute
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div id="terminal-output" class="bg-dark text-light p-3" style="height: 400px; overflow-y: auto; font-family: monospace;">
+                                    Terminal ready. Enter commands above.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Files Tab -->
+                    <div class="tab-pane fade" id="files-tab">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Upload File to Client</h6>
+                                <form id="upload-form" enctype="multipart/form-data">
+                                    <div class="input-group mb-3">
+                                        <input type="file" class="form-control" id="file-upload">
+                                        <button class="btn btn-success" type="button" onclick="uploadFile()">
+                                            <i class="fas fa-upload me-1"></i>Upload
+                                        </button>
+                                    </div>
+                                </form>
+                                
+                                <h6>Request File from Client</h6>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" id="file-path-input" placeholder="Enter file path...">
+                                    <button class="btn btn-info" onclick="requestFile()">
+                                        <i class="fas fa-download me-1"></i>Request
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Received Files</h6>
+                                <div id="files-list" class="list-group">
+                                    <!-- Files will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logs Tab -->
+                    <div class="tab-pane fade" id="logs-tab">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h6>Client Activity Logs</h6>
+                            <button class="btn btn-sm btn-outline-primary" onclick="refreshLogs()">
+                                <i class="fas fa-sync-alt me-1"></i>Refresh
+                            </button>
+                        </div>
+                        <div id="logs-output" class="bg-light p-3" style="height: 400px; overflow-y: auto; font-family: monospace;">
+                            Loading logs...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="disconnectClient()">
+                    <i class="fas fa-unlink me-1"></i>Disconnect Client
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentClientId = null;
+
+// Refresh clients list
+function refreshClients() {
+    fetch('/api/clients')
+        .then(response => response.json())
+        .then(clients => {
+            updateClientsTable(clients);
+            document.getElementById('client-count').textContent = clients.length;
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Update clients table
+function updateClientsTable(clients) {
+    const tbody = document.getElementById('clients-tbody');
+    tbody.innerHTML = '';
+    
+    clients.forEach(client => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${client.computer_name}</td>
+            <td>${client.username}</td>
+            <td>${client.os}</td>
+            <td>${client.address}</td>
+            <td>${client.connected_at}</td>
+            <td>${client.last_seen}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="manageClient('${client.id}', '${client.computer_name}')">
+                    <i class="fas fa-cogs me-1"></i>Manage
+                </button>
+            </td>
+        `;
+    });
+}
+
+// Manage client
+function manageClient(clientId, clientName) {
+    currentClientId = clientId;
+    document.getElementById('modal-client-name').textContent = clientName;
+    
+    // Clear previous content
+    document.getElementById('terminal-output').innerHTML = 'Terminal ready. Enter commands above.';
+    document.getElementById('logs-output').innerHTML = 'Loading logs...';
+    
+    // Show modal
+    new bootstrap.Modal(document.getElementById('clientModal')).show();
+    
+    // Load initial data
+    refreshLogs();
+    refreshFiles();
+}
+
+// Send command
+function sendCommand() {
+    const command = document.getElementById('command-input').value.trim();
+    if (!command || !currentClientId) return;
+    
+    fetch(`/api/client/${currentClientId}/command`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: command })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            appendToTerminal(`> ${command}`);
+            document.getElementById('command-input').value = '';
+        } else {
+            appendToTerminal(`Error: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        appendToTerminal(`Error: ${error.message}`);
+    });
+}
+
+// Append to terminal
+function appendToTerminal(text) {
+    const terminal = document.getElementById('terminal-output');
+    terminal.innerHTML += text + '\n';
+    terminal.scrollTop = terminal.scrollHeight;
+}
+
+// Upload file
+function uploadFile() {
+    const fileInput = document.getElementById('file-upload');
+    const file = fileInput.files[0];
+    
+    if (!file || !currentClientId) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    fetch(`/api/client/${currentClientId}/upload`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            appendToTerminal(`File uploaded: ${file.name}`);
+            fileInput.value = '';
+        } else {
+            appendToTerminal(`Upload error: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        appendToTerminal(`Upload error: ${error.message}`);
+    });
+}
+
+// Request file
+function requestFile() {
+    const filepath = document.getElementById('file-path-input').value.trim();
+    if (!filepath || !currentClientId) return;
+    
+    fetch(`/api/client/${currentClientId}/request_file`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filepath: filepath })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            appendToTerminal(`File requested: ${filepath}`);
+            document.getElementById('file-path-input').value = '';
+        } else {
+            appendToTerminal(`Request error: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        appendToTerminal(`Request error: ${error.message}`);
+    });
+}
+
+// Refresh logs
+function refreshLogs() {
+    if (!currentClientId) return;
+    
+    fetch(`/api/client/${currentClientId}/logs`)
+        .then(response => response.json())
+        .then(logs => {
+            const logsOutput = document.getElementById('logs-output');
+            logsOutput.innerHTML = logs.join('\n');
+            logsOutput.scrollTop = logsOutput.scrollHeight;
+        })
+        .catch(error => {
+            document.getElementById('logs-output').innerHTML = `Error loading logs: ${error.message}`;
+        });
+}
+
+// Refresh files
+function refreshFiles() {
+    if (!currentClientId) return;
+    
+    fetch(`/api/client/${currentClientId}/files`)
+        .then(response => response.json())
+        .then(files => {
+            const filesList = document.getElementById('files-list');
+            filesList.innerHTML = '';
+            
+            files.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                fileItem.innerHTML = `
+                    <div>
+                        <strong>${file.name}</strong><br>
+                        <small class="text-muted">${file.size} bytes - ${file.modified}</small>
+                    </div>
+                    <a href="/api/client/${currentClientId}/download/${file.name}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-download"></i>
+                    </a>
+                `;
+                filesList.appendChild(fileItem);
+            });
+        })
+        .catch(error => {
+            document.getElementById('files-list').innerHTML = `<div class="alert alert-danger">Error loading files: ${error.message}</div>`;
+        });
+}
+
+// Disconnect client
+function disconnectClient() {
+    if (!currentClientId) return;
+    
+    if (confirm('Are you sure you want to disconnect this client?')) {
+        fetch(`/api/client/${currentClientId}/disconnect`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('clientModal')).hide();
+                refreshClients();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+}
+
+// Handle Enter key in command input
+document.getElementById('command-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendCommand();
+    }
+});
+
+// Auto-refresh clients every 10 seconds
+setInterval(refreshClients, 10000);
+
+// Initial load
+refreshClients();
+</script>
+{% endblock %}
